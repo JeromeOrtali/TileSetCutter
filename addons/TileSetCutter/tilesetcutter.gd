@@ -2,10 +2,16 @@ tool
 extends Node2D
 
 var index = 0
+export(bool) var ForceUpdate setget forceUpdate  #Forces an update_change()
+export(bool) var PadZeroes
+export(bool) var GenerateAllPalettes
 export(Vector2) var TileSize = Vector2(16,16) setget changeTileSize
 export(Vector2) var Separation = Vector2(0,0) setget changeSeparation
 export(Texture) var TextureToCut = null setget changeTexture
 
+
+func forceUpdate(value):
+	update_change()
 
 func changeTileSize(value):
 	TileSize = value
@@ -32,6 +38,9 @@ func update_change():
 			var tx = w / TileSize.x
 			var ty = h / TileSize.y
 			
+			var zeroes = len(str(tx*ty))
+			print(zeroes)
+			
 			for i in range(0, get_child_count()):
 				get_child(i).queue_free()
 							
@@ -42,7 +51,12 @@ func update_change():
 					if !is_empty(TextureToCut,x*TileSize.x,y*TileSize.y,TileSize.x, TileSize.y):
 						index = (x + tx) * y
 						var sprite = Sprite.new()
-						sprite.set_name(str(index))
+#						
+						if PadZeroes:
+							sprite.set_name(("%0" + str(zeroes) + "d") % index)
+						else:
+							sprite.set_name(str(index))
+						
 						sprite.texture = TextureToCut
 						sprite.region_enabled = true
 						sprite.region_rect = Rect2(x*TileSize.x,y*TileSize.y,TileSize.x, TileSize.y)
