@@ -4,7 +4,7 @@ extends Node2D
 export(bool) var force_update setget force_update  #Forces an update_change()
 export(bool) var PadZeroes
 export(bool) var GenerateAllPalettes
-export(bool) var Collision = false setget enable_collision
+export(bool) var GenerateCollision = false setget enable_collision
 
 enum TilingType {SQUARE, ISOMETRIC, CUSTOM}
 export (TilingType) var TileType = TilingType.SQUARE
@@ -12,6 +12,7 @@ export (TilingType) var TileType = TilingType.SQUARE
 export(Vector2) var TileSize = Vector2(16,16) setget change_tile_size
 export(Vector2) var Separation = Vector2(0,0) setget change_separation
 export(Vector3) var CollisionSize = Vector3(0,0,0) setget change_collision_size
+export(Vector2) var TextureOffset = Vector2(0,0)
 export(Texture) var TextureToCut = null setget change_texture
 
 
@@ -34,7 +35,7 @@ func change_texture(value):
 			get_child(i).queue_free()
 			
 func enable_collision(value):
-	Collision = value
+	GenerateCollision = value
 	update_change()
 	
 func change_collision_size(value):
@@ -75,11 +76,12 @@ func update_change():
 					sprite.region_rect = Rect2(x*TileSize.x,y*TileSize.y,TileSize.x, TileSize.y)
 					sprite.position.x = (x * TileSize.x) + (x*Separation.x)
 					sprite.position.y = (y * TileSize.y) + (y*Separation.y)
+					sprite.offset = TextureOffset
 					
 					add_child(sprite)
 					sprite.set_owner(get_tree().get_edited_scene_root())
 					
-					if Collision:
+					if GenerateCollision:
 						create_collision_node(sprite)
 
 func create_collision_node(sprite):
@@ -99,11 +101,12 @@ func create_collision_node(sprite):
 						Vector2(CollisionSize.x/2, CollisionSize.y/2), 
 						Vector2(-CollisionSize.x/2, CollisionSize.y/2)]
 		elif TileType == TilingType.ISOMETRIC:
+			# var actualColSize = Vector3(CollisionSize.x - TextureOffset.x, CollisionSize.y - TextureOffset.y, CollisionSize.z - TextureOffset.y)
 			colPoly2d.polygon = [
-						Vector2(-CollisionSize.x, CollisionSize.y), 
-						Vector2(0, CollisionSize.z),
-						Vector2(CollisionSize.x, CollisionSize.y), 
-						Vector2(0, 0)]
+						Vector2(-CollisionSize.x + TextureOffset.x, CollisionSize.y + TextureOffset.y), 
+						Vector2(TextureOffset.x, CollisionSize.z + TextureOffset.y),
+						Vector2(CollisionSize.x + TextureOffset.x, CollisionSize.y + TextureOffset.y), 
+						Vector2(TextureOffset.x, TextureOffset.y)]
 
 		# Add the collision polygon to the static body and add it to the current scene
 		staticBody2d.add_child(colPoly2d)
