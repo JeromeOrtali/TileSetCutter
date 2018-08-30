@@ -6,6 +6,9 @@ export(bool) var PadZeroes
 export(bool) var GenerateAllPalettes
 export(bool) var Collision = false setget enable_collision
 
+enum TilingType {SQUARE, ISOMETRIC, CUSTOM}
+export (TilingType) var TileType = TilingType.SQUARE
+
 export(Vector2) var TileSize = Vector2(16,16) setget change_tile_size
 export(Vector2) var Separation = Vector2(0,0) setget change_separation
 export(Vector3) var CollisionSize = Vector3(0,0,0) setget change_collision_size
@@ -80,7 +83,7 @@ func update_change():
 						create_collision_node(sprite)
 
 func create_collision_node(sprite):
-	if CollisionSize.x > 0 and CollisionSize.y > 0 and CollisionSize.z > 0:
+	if CollisionSize.x > 0 and CollisionSize.y > 0:
 		var staticBody2d = StaticBody2D.new()
 		var colPoly2d = CollisionPolygon2D.new()
 		
@@ -89,11 +92,18 @@ func create_collision_node(sprite):
 		staticBody2d.set_owner(get_tree().get_edited_scene_root())
 		
 		# Create the polygon that will be used as collision
-		colPoly2d.polygon = [
-					Vector2(-CollisionSize.x, CollisionSize.y), 
-					Vector2(0, CollisionSize.z),
-					Vector2(CollisionSize.x, CollisionSize.y), 
-					Vector2(0, 0)]
+		if TileType == TilingType.SQUARE:
+			colPoly2d.polygon = [
+						Vector2(-CollisionSize.x/2, -CollisionSize.y/2), 
+						Vector2(CollisionSize.x/2, -CollisionSize.y/2),
+						Vector2(CollisionSize.x/2, CollisionSize.y/2), 
+						Vector2(-CollisionSize.x/2, CollisionSize.y/2)]
+		elif TileType == TilingType.ISOMETRIC:
+			colPoly2d.polygon = [
+						Vector2(-CollisionSize.x, CollisionSize.y), 
+						Vector2(0, CollisionSize.z),
+						Vector2(CollisionSize.x, CollisionSize.y), 
+						Vector2(0, 0)]
 
 		# Add the collision polygon to the static body and add it to the current scene
 		staticBody2d.add_child(colPoly2d)
